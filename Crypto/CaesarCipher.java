@@ -1,7 +1,7 @@
 package Crypto;
 
 public class CaesarCipher extends AbstractCipher {
-    
+
     private int shift;
 
     public CaesarCipher(int shift) {
@@ -9,38 +9,27 @@ public class CaesarCipher extends AbstractCipher {
     }
 
     @Override
-    public String encrypt(String plaintext) {
-        StringBuilder encryptedText = new StringBuilder();
-
-        for (int i = 0; i < plaintext.length(); i++) {
-            char ch = plaintext.charAt(i);
-
-            if (Character.isLetter(ch)) {
-                char offset = Character.isUpperCase(ch) ? 'A' : 'a';
-                encryptedText.append((char) ((ch - offset + shift) % 26 + offset));
-            } else {
-                encryptedText.append(ch);
-            }
-        }
-
-        return encryptedText.toString();
+    public String encrypt(String data) {
+        return shiftString(data, shift);
     }
 
     @Override
-    public String decrypt(String ciphertext) {
-        StringBuilder decryptedText = new StringBuilder();
+    public String decrypt(String data) {
+        return shiftString(data, -shift);
+    }
 
-        for (int i = 0; i < ciphertext.length(); i++) {
-            char ch = ciphertext.charAt(i);
+    private String shiftString(String data, int shiftValue) {
+        StringBuilder result = new StringBuilder();
 
-            if (Character.isLetter(ch)) {
-                char offset = Character.isUpperCase(ch) ? 'A' : 'a';
-                decryptedText.append((char) ((ch - offset - shift + 26) % 26 + offset));
+        for (char character : data.toCharArray()) {
+            if (character >= 'A' && character <= 'Z') {
+                result.append((char) ('A' + (character - 'A' + shiftValue + 26) % 26));
+            } else if (character >= 'a' && character <= 'z') {
+                result.append((char) ('a' + (character - 'a' + shiftValue + 26) % 26));
             } else {
-                decryptedText.append(ch);
+                result.append(character);
             }
         }
-
-        return decryptedText.toString();
+        return result.toString();
     }
 }

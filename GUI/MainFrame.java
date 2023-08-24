@@ -1,70 +1,101 @@
 package GUI;
 
-import javax.swing.*;
 import Crypto.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
 public class MainFrame extends JFrame {
 
     private JTextArea inputTextArea;
-    private JComboBox<String> cipherSelector;
+    private JTextArea outputTextArea;
     private JButton encryptButton;
     private JButton decryptButton;
+    private JComboBox<String> cipherSelector;
+    private CipherOptionPanel currentOptionPanel;
+    private JPanel optionsPanel;
+    private JPanel centerPanel;
 
     public MainFrame() {
-        setTitle("Chiffrement");
-        setSize(500, 300);
+        setTitle("Cryptographie");
+        setSize(800, 600);
+        setLayout(new BorderLayout());
+
+        inputTextArea = new JTextArea(10, 40);
+        outputTextArea = new JTextArea(10, 40);
+        encryptButton = new JButton("Crypter");
+        decryptButton = new JButton("Décrypter");
+        cipherSelector = new JComboBox<>(new String[]{"César"});
+        optionsPanel = new JPanel();
+        centerPanel = new JPanel(new BorderLayout());
+
+        // Gestion des événements des boutons
+        encryptButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                encryptData();
+            }
+        });
+
+        decryptButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                decryptData();
+            }
+        });
+
+        cipherSelector.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleCipherSelection();
+            }
+        });
+
+        add(inputTextArea, BorderLayout.NORTH);
+        add(outputTextArea, BorderLayout.SOUTH);
+        add(encryptButton, BorderLayout.WEST);
+        add(decryptButton, BorderLayout.EAST);
+
+        centerPanel.add(cipherSelector, BorderLayout.NORTH);
+        centerPanel.add(optionsPanel, BorderLayout.CENTER);
+        add(centerPanel, BorderLayout.CENTER);
+        
+        handleCipherSelection();
+
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null);
-
-        inputTextArea = new JTextArea();
-        inputTextArea.setBounds(10, 10, 470, 150);
-        add(inputTextArea);
-
-        cipherSelector = new JComboBox<>(new String[]{"César", "XOR"}); // Autres méthodes ici
-        cipherSelector.setBounds(10, 170, 100, 25);
-        add(cipherSelector);
-
-        encryptButton = new JButton("Chiffrer");
-        encryptButton.setBounds(120, 170, 100, 25);
-        encryptButton.addActionListener(e -> encryptData());
-        add(encryptButton);
-
-        decryptButton = new JButton("Déchiffrer");
-        decryptButton.setBounds(230, 170, 100, 25);
-        decryptButton.addActionListener(e -> decryptData());
-        add(decryptButton);
     }
 
     private void encryptData() {
-        String plaintext = inputTextArea.getText();
-        AbstractCipher cipher;
-
-        switch (cipherSelector.getSelectedItem().toString()) {
-            case "César":
-                cipher = new CaesarCipher(3); 
-                inputTextArea.setText(cipher.encrypt(plaintext));
-                break;
-            case "XOR":
-                // Implementer le XOR ici 
-                break;
-            // Autres cas pour d'autres algorithmes
-        }
+        String inputText = inputTextArea.getText();
+        int shiftValue = ((CaesarOptionPanel) currentOptionPanel).getShiftValue();
+        AbstractCipherFactory factory = new CaesarCipherFactory(shiftValue);
+        AbstractCipher cipher = factory.createCipher();
+        String encryptedText = cipher.encrypt(inputText);
+        outputTextArea.setText(encryptedText);
     }
 
     private void decryptData() {
-        String ciphertext = inputTextArea.getText();
-        AbstractCipher cipher;
+        String encryptedText = outputTextArea.getText();
+        int shiftValue = ((CaesarOptionPanel) currentOptionPanel).getShiftValue();
+        AbstractCipherFactory factory = new CaesarCipherFactory(shiftValue);
+        AbstractCipher cipher = factory.createCipher();
+        String decryptedText = cipher.decrypt(encryptedText);
+        inputTextArea.setText(decryptedText);
+    }
 
-        switch (cipherSelector.getSelectedItem().toString()) {
-            case "César":
-                cipher = new CaesarCipher(3); 
-                inputTextArea.setText(cipher.decrypt(ciphertext));
-                break;
-            case "XOR":
-                // Implementer le XOR ici 
-                break;
-            // Autres cas pour d'autres algorithmes
+    private void handleCipherSelection() {
+        String selectedCipher = (String) cipherSelector.getSelectedItem();
+        
+        // Reset options panel
+        optionsPanel.removeAll();
+
+        if (selectedCipher.equals("César")) {
+            currentOptionPanel = new CaesarCipherFactory(3).createOptionPanel();
+            optionsPanel.add(currentOptionPanel);
         }
+        // Vous pouvez ajouter plus de chiffrements ici...
+
+        optionsPanel.revalidate();
+        optionsPanel.repaint();
     }
 }
-
